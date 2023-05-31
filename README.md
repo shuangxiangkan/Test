@@ -45,20 +45,19 @@ These Specification Language objects for functions contain four parts:
  4. The side-effect of the external function (`Optional`, if there is no side-effect of that function). Function side-effect indicate the relationships between input and output, mainly between function parameters or between parameters and return values after the execution.
    
     -  For operators of function operation, there are the following options:
-       - `AddrStmt`,
-       - `CopyStmt`,
-       - `LoadStmt`
-       - `StoreStmt`,
-       - `GepStmt`,
-       - `CallStmt`,
-       - `ReturnStmt`,
-       - `CondStmt`,
-       - `memset_like`: the function has similar side-effect to function "void *memset(void *str, int c, size_t n)",
-       - `memcpy_like`: the function has similar side-effect to function "void *memcpy(void *dest, const void * src, size_t n)",
-       - `Rb_tree_ops`: the function has similar side-effect to function "_ZSt29_Rb_tree_insert_and_rebalancebPSt18_Rb_tree_node_baseS0_RS_".
+       - `AddrStmt`:  add an Address edge between src node and dst node in SVF IR. 
+       - `CopyStmt`:  add a Copy edge between src node and dst node in SVF IR. 
+       - `LoadStmt`:  add a Load edge between src node and dst node in SVF IR. 
+       - `StoreStmt`: add a Store edge between src node and dst node in SVF IR. 
+       - `GepStmt`: add a Gep edge between src node and dst node with an offset node in SVF IR. 
+       - `CallStmt`: In an external call, there may be another callee function being called. Call edges will be added from the actual arguments of the external call to the formal parameters of the callee function in SVF IR.
+       - `ReturnStmt`: In an external call, there may be another callee function being called. A return edge will be added from the return value of the callee function to the external call in SVF IR.
+       - `CondStmt`: For the true and false branches, corresponding edges will be added accordingly in SVF IR.
+       - `memset_like`: the function has similar side-effect to function "void *memset(void *str, int c, size_t n)". Based on the value of size (e.g., size_t n), `n` Store edges will be added from the same src node to different subfields of dst node in SVF IR.
+       - `memcpy_like`: the function has similar side-effect to function "void *memcpy(void *dest, const void * src, size_t n)". Based on the value of size (e.g., size_t n), `n` Load and Store edges will be added between `n` pairs of src and dst subfields. A dummy node will be inserted as an intermediate node for each Load and Store edge in SVF IR.
 
     - For operands of function operation,, there are the following options:
-       - `Arg`: represents a parameter,
+       - `Arg`: represents a argument,
        - `Obj`: represents a object,
        - `Ret`: represents a return value,
        - `Dummy`: represents a dummy node. Dummy nodes are used in the specification language to represent temporary values or intermediate states during the analysis of side-effects. They act as placeholders for values that are not directly related to function arguments or return values.
