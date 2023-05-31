@@ -50,8 +50,9 @@ These Specification Language objects for functions contain four parts:
        - `LoadStmt`
        - `StoreStmt`,
        - `GepStmt`,
-       - `Call`,
-       - `Return`,
+       - `CallStmt`,
+       - `ConStmt`,
+       - `ReturnStmt`,
        - `memset_like`: the function has similar side-effect to function "void *memset(void *str, int c, size_t n)",
        - `memcpy_like`: the function has similar side-effect to function "void *memcpy(void *dest, const void * src, size_t n)",
        - `Rb_tree_ops`: the function has similar side-effect to function "_ZSt29_Rb_tree_insert_and_rebalancebPSt18_Rb_tree_node_baseS0_RS_".
@@ -60,7 +61,7 @@ These Specification Language objects for functions contain four parts:
        - `Arg`: represents a parameter,
        - `Obj`: represents a object,
        - `Ret`: represents a return value,
-       - `Dummy`: represents a dummy node.
+       - `Dummy`: represents a dummy node. Dummy nodes are used in the specification language to represent temporary values or intermediate states during the analysis of side-effects. They act as placeholders for values that are not directly related to function arguments or return values.
 
  
 ## Examples
@@ -119,5 +120,102 @@ These Specification Language objects for functions contain four parts:
            }
        }
       ```
-        - `overwrite_app_function: 0`: Sets the switch to 0, indicating that the specification rules defined in ExtAPI.json should overwrite the user-defined function in the code.
-        - `CopyStmt: {src: Arg0, dst: Ret}`: Specifies the value of first argument ("Arg0") will be copied to the return value ("Ret") of the function.
+        - `LoadStmt: {src: Arg1, dst: Dummy}`: It indicates that the value of second argument ("Arg1") will be loaded into a dummy node ("Dummy").
+        - `CopyStmt: {src: Dummy, dst: Arg0}`: It indicates that the value in the dummy node ("Dummy")(the same dummy node) will be stored into first argument("Arg0"). The dummy node is used in the "LoadStmt" and "StoreStmt" side-effects. It allows for the temporary storage and manipulation of values during the analysis process.
+        
+   - `GetStmt`:
+      ```json
+      "_ZNSt5arrayIPK1ALm2EE4backEv":{
+        "return":  "%class.A** ",
+        "arguments":  "(%struct.std::array *)",
+        "type": "CPP_EFT_DYNAMIC_CAST",
+        "overwrite_app_function": 1,
+        "GepStmt1": {
+            "src": "Arg0",
+            "dst": "Dummy",
+            "offset": "0"
+        },
+        "GepStmt2": {
+            "src": "Dummy",
+            "dst": "Ret",
+            "offset": "0"
+        }
+      ```
+        - `GepStmt1: {src: Arg0, dst: Dummy, offset: 0}`: Specifies a getelementptr (GEP) statement side-effect. It indicates that a GEP operation should be performed on the value of the first argument ("Arg0"), with an offset of 0, and the result should be stored in the dummy node ("Dummy").
+        - `GepStmt2: {src: Dummy, dst: Ret, offset: 0}`: Specifies another GEP statement side-effect. It indicates that a GEP operation should be performed on the value in the dummy node ("Dummy"), with an offset of 0, and the result should be assigned to the return value ("Ret").
+
+   - `CallStmt` and `ReturnStmt`:
+      ```json
+      "swapExtCallStmt":{
+        "return":  "void",
+        "arguments":  "(char **, char **)",
+        "type": "EFT_NOOP",
+        "overwrite_app_function": 0,
+        "CallStmt": {
+            "callee_name": "swap",
+            "callee_return": "void",
+            "callee_arguments": "(char **, char **)",
+            "CopyStmt1": {
+                "src": "swapExtCallStmt_Arg0",
+                "dst": "x"
+            },
+            "LoadStmt1": {
+                "src": "x",
+                "dst": "swap_Arg0"
+            },
+            "CopyStmt2": {
+                "src": "swapExtCallStmt_Arg1",
+                "dst": "swap_Arg1"
+            },
+             "ReturnStmt": {
+                "src": "swap_Ret",
+                "dst": "swapExtCallStmt_Ret"
+            }
+        }
+      }
+      ```
+        - `CopyStmt1: {src: swapExtCallStmt_Arg0, dst: x}`: Specifies a copy statement side-effect. It indicates that the value of the swapExtCallStmt_Arg0 node (which represents the first argument of the swapExtCallStmt function) should be copied into a node named "x".
+        - `LoadStmt1: {src: x, dst: swap_Arg0}`: Specifies a load statement side-effect. It indicates that the value in the "x" node should be loaded into the first argument of the swap function.
+        - `CopyStmt2: {src: swapExtCallStmt_Arg1, dst: swap_Arg1}`: Specifies another copy statement side-effect. It indicates that the value of the swapExtCallStmt_Arg1 node (which represents the second argument of the swapExtCallStmt function) should be copied into the second argument of the swap function.
+        - `ReturnStmt: {src: swap_Ret, dst: swapExtCallStmt_Ret}`: Specifies a return statement side-effect. It indicates that the value in the "swap_Ret" node (representing the return value of the "swap" function) should be assigned to the return value of the "swapExtCallStmt" function.
+        
+        In summary, this external function `swapExtCallStmt` performs a call to another function named "swap" with the specified arguments and return type. It includes copy and load statements to handle the argument passing between functions. Additionally, it assigns the return value of the "swap" function to the return value of the "swapExtCallStmt" function.
+        
+        
+        - `CallStmt` and `ReturnStmt`:
+      ```json
+      "swapExtCallStmt":{
+        "return":  "void",
+        "arguments":  "(char **, char **)",
+        "type": "EFT_NOOP",
+        "overwrite_app_function": 0,
+        "CallStmt": {
+            "callee_name": "swap",
+            "callee_return": "void",
+            "callee_arguments": "(char **, char **)",
+            "CopyStmt1": {
+                "src": "swapExtCallStmt_Arg0",
+                "dst": "x"
+            },
+            "LoadStmt1": {
+                "src": "x",
+                "dst": "swap_Arg0"
+            },
+            "CopyStmt2": {
+                "src": "swapExtCallStmt_Arg1",
+                "dst": "swap_Arg1"
+            },
+             "ReturnStmt": {
+                "src": "swap_Ret",
+                "dst": "swapExtCallStmt_Ret"
+            }
+        }
+      }
+      ```
+        - `CopyStmt1: {src: swapExtCallStmt_Arg0, dst: x}`: Specifies a copy statement side-effect. It indicates that the value of the swapExtCallStmt_Arg0 node (which represents the first argument of the swapExtCallStmt function) should be copied into a node named "x".
+        - `LoadStmt1: {src: x, dst: swap_Arg0}`: Specifies a load statement side-effect. It indicates that the value in the "x" node should be loaded into the first argument of the swap function.
+        - `CopyStmt2: {src: swapExtCallStmt_Arg1, dst: swap_Arg1}`: Specifies another copy statement side-effect. It indicates that the value of the swapExtCallStmt_Arg1 node (which represents the second argument of the swapExtCallStmt function) should be copied into the second argument of the swap function.
+        - `ReturnStmt: {src: swap_Ret, dst: swapExtCallStmt_Ret}`: Specifies a return statement side-effect. It indicates that the value in the "swap_Ret" node (representing the return value of the "swap" function) should be assigned to the return value of the "swapExtCallStmt" function.
+        
+        In summary, this external function `swapExtCallStmt` performs a call to another function named "swap" with the specified arguments and return type. It includes copy and load statements to handle the argument passing between functions. Additionally, it assigns the return value of the "swap" function to the return value of the "swapExtCallStmt" function.
+      
