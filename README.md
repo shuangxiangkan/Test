@@ -61,3 +61,63 @@ These Specification Language objects for functions contain four parts:
        - `Obj`: represents a object,
        - `Ret`: represents a return value,
        - `Dummy`: represents a dummy node.
+
+ 
+## Examples
+
+   Below, examples are provided for each operator to help better understand the specification language.
+   
+   - `AddrStmt`:
+      ```json
+      "malloc":   {
+           "return":  "void *",
+           "arguments":  "(size_t)",
+           "type": "EFT_ALLOC",
+           "overwrite_app_function": 1,
+           "AddrStmt": {
+            "src": "Obj",
+            "dst": "Ret"
+         }
+       }
+      ```
+     - `return: void *`: Specifies the return type of the function, which is a pointer to void.
+     - `arguments: (size_t)`: Specifies the type of the argument(s) expected by the function. In this case, the "malloc" function expects a single argument of type "size_t".
+     - `type: EFT_ALLOC`: Indicates the type of the function. Here, it is specified as "EFT_ALLOC", which means that this external function allocates a new object and assigns it to one of its arguments.
+     - `overwrite_app_function: 1`: Sets the switch to 1, indicating that the specification rules defined in ExtAPI.json should overwrite the user-defined function in the code.
+     - `AddrStmt: {src: Obj, dst: Ret}`: Specifies the side-effect of the function. In this case, it indicates that after executing the "malloc" function, a new object will be assigned to the return value ("Ret") of the function.
+
+   - `CopyStmt`:
+      ```json
+      "strstr":   {
+           "return":  "char *",
+           "arguments":  "(const char *, const char *)",
+           "type": "EFT_L_A0",
+           "overwrite_app_function": 0,
+           "CopyStmt": {
+            "src": "Arg0",
+            "dst": "Ret"
+         }
+       }
+      ```
+        - `overwrite_app_function: 0`: Sets the switch to 0, indicating that the specification rules defined in ExtAPI.json should overwrite the user-defined function in the code.
+        - `CopyStmt: {src: Arg0, dst: Ret}`: Specifies the value of first argument ("Arg0") will be copied to the return value ("Ret") of the function.
+
+   - `LoadStmt` and `StoreStmt`:
+      ```json
+      "_ZNSsC1ERKSs":{
+           "return":  "void",
+           "arguments":  "(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
+           "type": "CPP_EFT_A0R_A1R",
+           "overwrite_app_function": 0,
+           "LoadStmt": {
+               "src": "Arg1",
+               "dst": "Dummy"
+           },
+           "StoreStmt": {
+               "src": "Dummy",
+               "dst": "Arg0"
+           }
+       }
+      ```
+        - `overwrite_app_function: 0`: Sets the switch to 0, indicating that the specification rules defined in ExtAPI.json should overwrite the user-defined function in the code.
+        - `CopyStmt: {src: Arg0, dst: Ret}`: Specifies the value of first argument ("Arg0") will be copied to the return value ("Ret") of the function.
