@@ -51,7 +51,7 @@ These Specification Language objects for functions contain four parts:
        - `StoreStmt`,
        - `GepStmt`,
        - `CallStmt`,
-       - `ConStmt`,
+       - `CondStmt`,
        - `ReturnStmt`,
        - `memset_like`: the function has similar side-effect to function "void *memset(void *str, int c, size_t n)",
        - `memcpy_like`: the function has similar side-effect to function "void *memcpy(void *dest, const void * src, size_t n)",
@@ -182,40 +182,35 @@ These Specification Language objects for functions contain four parts:
         In summary, this external function `swapExtCallStmt` performs a call to another function named "swap" with the specified arguments and return type. It includes copy and load statements to handle the argument passing between functions. Additionally, it assigns the return value of the "swap" function to the return value of the "swapExtCallStmt" function.
         
         
-        - `CallStmt` and `ReturnStmt`:
+        - `CondStmt`:
       ```json
-      "swapExtCallStmt":{
-        "return":  "void",
-        "arguments":  "(char **, char **)",
-        "type": "EFT_NOOP",
-        "overwrite_app_function": 0,
-        "CallStmt": {
-            "callee_name": "swap",
-            "callee_return": "void",
-            "callee_arguments": "(char **, char **)",
-            "CopyStmt1": {
-                "src": "swapExtCallStmt_Arg0",
-                "dst": "x"
-            },
-            "LoadStmt1": {
-                "src": "x",
-                "dst": "swap_Arg0"
-            },
-            "CopyStmt2": {
-                "src": "swapExtCallStmt_Arg1",
-                "dst": "swap_Arg1"
-            },
-             "ReturnStmt": {
-                "src": "swap_Ret",
-                "dst": "swapExtCallStmt_Ret"
-            }
-        }
-      }
+          "foo": {
+           "return":  "void",
+           "arguments":  "(char **, char **)",
+           "type": "EFT_FREE_MULTILEVEL",
+           "overwrite_app_function": 1,
+           "CondStmt": {
+               "TrueBranch": {
+                   "Condition": "arg0 == arg1",
+                   "CopyStmt": {
+                       "src": "Arg0",
+                       "dst": "Arg1"
+                   }
+               },
+               "FalseBranch": {
+                   "Condition": "arg0 != arg1",
+                   "CopyStmt": {
+                       "src": "Arg1",
+                       "dst": "Ret"
+                   }      
+              }
+          }
       ```
-        - `CopyStmt1: {src: swapExtCallStmt_Arg0, dst: x}`: Specifies a copy statement side-effect. It indicates that the value of the swapExtCallStmt_Arg0 node (which represents the first argument of the swapExtCallStmt function) should be copied into a node named "x".
-        - `LoadStmt1: {src: x, dst: swap_Arg0}`: Specifies a load statement side-effect. It indicates that the value in the "x" node should be loaded into the first argument of the swap function.
-        - `CopyStmt2: {src: swapExtCallStmt_Arg1, dst: swap_Arg1}`: Specifies another copy statement side-effect. It indicates that the value of the swapExtCallStmt_Arg1 node (which represents the second argument of the swapExtCallStmt function) should be copied into the second argument of the swap function.
-        - `ReturnStmt: {src: swap_Ret, dst: swapExtCallStmt_Ret}`: Specifies a return statement side-effect. It indicates that the value in the "swap_Ret" node (representing the return value of the "swap" function) should be assigned to the return value of the "swapExtCallStmt" function.
+        - `TrueBranch: {Condition: arg0 == arg1}`: Represents the true condition branch.
+        - `TrueBranch: {CopyStmt: {src: Arg0, dst: Arg1}"}`: Specifies a copy statement side-effect. It indicates that if the condition is true, the first argument should be copied into the second argument
+        - `FalseBranch: {Condition: arg0 != arg1}`: Represents the false condition branch.
+        - `FalseBranch: {CopyStmt: {src: Arg1, dst: Ret}}`: Specifies a copy statement side-effect. It indicates that if the condition is true, the second argument should be copied into the return value.
+
         
-        In summary, this external function `swapExtCallStmt` performs a call to another function named "swap" with the specified arguments and return type. It includes copy and load statements to handle the argument passing between functions. Additionally, it assigns the return value of the "swap" function to the return value of the "swapExtCallStmt" function.
+   
       
