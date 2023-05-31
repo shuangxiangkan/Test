@@ -51,8 +51,8 @@ These Specification Language objects for functions contain four parts:
        - `StoreStmt`,
        - `GepStmt`,
        - `CallStmt`,
-       - `CondStmt`,
        - `ReturnStmt`,
+       - `CondStmt`,
        - `memset_like`: the function has similar side-effect to function "void *memset(void *str, int c, size_t n)",
        - `memcpy_like`: the function has similar side-effect to function "void *memcpy(void *dest, const void * src, size_t n)",
        - `Rb_tree_ops`: the function has similar side-effect to function "_ZSt29_Rb_tree_insert_and_rebalancebPSt18_Rb_tree_node_baseS0_RS_".
@@ -123,7 +123,7 @@ These Specification Language objects for functions contain four parts:
         - `LoadStmt: {src: Arg1, dst: Dummy}`: It indicates that the value of second argument ("Arg1") will be loaded into a dummy node ("Dummy").
         - `CopyStmt: {src: Dummy, dst: Arg0}`: It indicates that the value in the dummy node ("Dummy")(the same dummy node) will be stored into first argument("Arg0"). The dummy node is used in the "LoadStmt" and "StoreStmt" side-effects. It allows for the temporary storage and manipulation of values during the analysis process.
         
-   - `GetStmt`:
+   - `GepStmt`:
       ```json
       "_ZNSt5arrayIPK1ALm2EE4backEv":{
         "return":  "%class.A** ",
@@ -182,7 +182,7 @@ These Specification Language objects for functions contain four parts:
         In summary, this external function `swapExtCallStmt` performs a call to another function named "swap" with the specified arguments and return type. It includes copy and load statements to handle the argument passing between functions. Additionally, it assigns the return value of the "swap" function to the return value of the "swapExtCallStmt" function.
         
         
-        - `CondStmt`:
+   - `CondStmt`:
       ```json
           "foo": {
            "return":  "void",
@@ -211,6 +211,41 @@ These Specification Language objects for functions contain four parts:
         - `FalseBranch: {Condition: arg0 != arg1}`: Represents the false condition branch.
         - `FalseBranch: {CopyStmt: {src: Arg1, dst: Ret}}`: Specifies a copy statement side-effect. It indicates that if the condition is true, the second argument should be copied into the return value.
 
-        
-   
+   - `memset_like`:
+      ```json
+      "llvm.memset":  {
+        "return":  "void",
+        "arguments":  "(i8*, i8, i32, i32, i1)",
+        "type": "EFT_L_A0__A0R_A1",
+        "overwrite_app_function": 0,
+        "memset_like":  {
+            "src": "Arg0",
+            "dst": "Arg1",
+            "size": "Arg2"
+        }
+      }
+      ```
+        - `memset_like`: Specifies a side-effect that is similar to the behavior of the `memset()` function.
+        - `src: Arg0`: Specifies the source node from which the value will be copied. In this case, the source is the first argument of the function (Arg0).
+        - `dst: Arg1`: Specifies the destination node to which the value will be copied. In this case, the destination is the second argument of the function (Arg1).
+        - `size: Arg2`: Specifies the size node that represents the size of the memory block to be set. In this case, the size node is the third argument of the function (Arg2).
+
+   - `memcpy_like`:
+      ```json
+      "bcopy":    {
+        "return":  "void",
+        "arguments":  "(const void *, void *, size_t)",
+        "type": "EFT_A1R_A0R",
+        "overwrite_app_function": 0,
+        "memcpy_like":  {
+            "src": "Arg1",
+            "dst": "Arg0",
+            "size": "Arg2"
+        }
+      }
+      ```
+        - `memcpy_like`: Specifies a side-effect that is similar to the behavior of the memcpy function.
+        - `src: Arg1`: Specifies the source node from which the value will be copied. In this case, the source is the second argument of the function (Arg1).
+        - `dst: Arg0`: Specifies the destination node to which the value will be copied. In this case, the destination is the first argument of the function (Arg0).
+        - `size: Arg2`: Specifies the size node that represents the size of the memory block to be copied. In this case, the size node is the third argument of the function (Arg2).
       
